@@ -1,11 +1,15 @@
+# -*- coding: utf-8 -*-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+#import actionChains so we can simulate mouse overs
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoAlertPresentException
 import unittest, time, re
 
-class CreateEditDeleteDept(unittest.TestCase):
+class CreateEditDeleteDept2(unittest.TestCase):
     def setUp(self):
         self.driver = webdriver.Firefox()
         self.driver.implicitly_wait(30)
@@ -13,7 +17,7 @@ class CreateEditDeleteDept(unittest.TestCase):
         self.verificationErrors = []
         self.accept_next_alert = True
     
-    def test_create_edit_delete_dept(self):
+    def test_create_edit_delete_dept2(self):
         driver = self.driver
         driver.get(self.base_url + "/home")
         driver.find_element_by_link_text("Login").click()
@@ -22,7 +26,20 @@ class CreateEditDeleteDept(unittest.TestCase):
         driver.find_element_by_id("edit-pass").clear()
         driver.find_element_by_id("edit-pass").send_keys("VT$L0gin")
         driver.find_element_by_id("edit-submit").click()
-        #driver.find_element_by_xpath("//body").click()
+        # ERROR: Caught exception [ERROR: Unsupported command [mouseOver | link=Content | ]]
+        # ERROR: Caught exception [ERROR: Unsupported command [mouseOver | link=Add content | ]]
+        #create a new ActionChains object for performing mouse clicks
+        actions = ActionChains(driver)
+
+        #tell it to move the mouse over the Content admin link
+        actions.move_to_element(driver.find_element_by_link_text("Content"))
+        actions.perform() #actually perform the action
+
+        #now that the menu cascades we can look for the Add Content link
+        actions.move_to_element(driver.find_element_by_link_text("Add content"))
+        actions.perform() #perform the action
+
+        #now the final cascade with the Department/Board link should be clickable
         driver.find_element_by_link_text("Department/Board Home Page").click()
         driver.find_element_by_id("edit-title").clear()
         driver.find_element_by_id("edit-title").send_keys("This is a test department")
@@ -53,7 +70,7 @@ class CreateEditDeleteDept(unittest.TestCase):
         driver.find_element_by_xpath("(//a[contains(text(),'Edit')])[3]").click()
         driver.find_element_by_id("edit-delete--2").click()
         driver.find_element_by_id("edit-submit").click()
-        driver.find_element_by_link_text(u"Responsive Design Dept »").click()
+        
     
     def is_element_present(self, how, what):
         try: self.driver.find_element(by=how, value=what)
